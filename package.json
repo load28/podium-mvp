@@ -1,27 +1,22 @@
 {
-  "name": "podium-test",
-  "version": "0.1.0",
-  "private": true,
+  "name": "podium-microfrontend-demo",
+  "version": "1.0.0",
+  "description": "Microfrontend demo with Podium, Next.js and Express",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "next": "15.2.4"
+    "install:all": "pnpm run install:layout && pnpm run install:podlets",
+    "install:layout": "cd layout && pnpm install",
+    "install:podlets": "cd podlets && pnpm install",
+    "dev": "concurrently \"pnpm run dev:layout\" \"pnpm run dev:podlets\"",
+    "dev:layout": "cd layout && pnpm run dev",
+    "dev:podlets": "cd podlets && pnpm run dev:all",
+    "build:all": "pnpm run build:layout && pnpm run build:podlets",
+    "build:layout": "cd layout && pnpm run build",
+    "build:podlets": "cd podlets && pnpm run build",
+    "start:all": "concurrently \"pnpm run start:layout\" \"pnpm run start:podlets\"",
+    "start:layout": "cd layout && pnpm run start",
+    "start:podlets": "cd podlets && pnpm run start:all"
   },
   "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
-    "eslint": "^9",
-    "eslint-config-next": "15.2.4",
-    "@eslint/eslintrc": "^3"
+    "concurrently": "^8.2.2"
   }
 }

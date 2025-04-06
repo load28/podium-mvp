@@ -1,0 +1,77 @@
+/* layout/app/globals.css */
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2c3e50;
+  --text-color: #333;
+  --background-color: #f5f7fa;
+  --error-color: #e74c3c;
+  --success-color: #2ecc71;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+.microfrontend-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Podlet 컨테이너 스타일 */
+.podlet {
+  width: 100%;
+}
+
+/* 헤더 Podlet이 페이지 상단에 고정되도록 */
+.podlet-header {
+  flex-shrink: 0;
+}
+
+/* 컨텐츠 Podlet이 남은 공간을 채우도록 */
+.podlet-content {
+  flex-grow: 1;
+}
+
+/* 푸터 Podlet이 페이지 하단에 고정되도록 */
+.podlet-footer {
+  flex-shrink: 0;
+}
+
+/* 로딩 및 오류 스타일 */
+.podlet-loading,
+.podlet-error {
+  padding: 1rem;
+  margin: 1rem 0;
+  border-radius: 4px;
+}
+
+.podlet-loading {
+  background-color: #e3f2fd;
+  border: 1px solid #bbdefb;
+}
+
+.podlet-error {
+  background-color: #fff3f3;
+  border: 1px solid #ffcdd2;
+}
+
+/* 반응형 디자인을 위한 미디어 쿼리 */
+@media (max-width: 768px) {
+  .podlet-header,
+  .podlet-content,
+  .podlet-footer {
+    padding: 0.5rem;
+  }
+}
