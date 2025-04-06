@@ -20,7 +20,7 @@ app.use(podlet.middleware());
 // 정적 파일 서빙 (CSS, JS)
 app.use("/static", express.static(path.join(__dirname, "public")));
 
-// CSS와 JS 리소스 등록
+// CSS와 JS 리소스 등록 - 타입 이슈 해결을 위해 타입 캐스팅 사용
 podlet.css({ value: "http://localhost:7200/static/content.css" } as any);
 podlet.js({
   value: "http://localhost:7200/static/content.js",

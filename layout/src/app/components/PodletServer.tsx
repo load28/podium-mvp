@@ -19,28 +19,22 @@ interface AssetUrlObject {
   defer?: boolean;
   type?: string;
   rel?: string;
-  [key: string]: any; // 다른 속성들
+  [key: string]: any;
 }
 
 // URL이 상대 경로인 경우 절대 URL로 변환하는 유틸리티 함수
 const ensureAbsoluteUrl = (url: unknown, podletName: string): string => {
-  console.log("원본 url 입력값:", url);
-
   // url이 객체인 경우 value 속성 추출
   if (url !== null && typeof url === "object") {
     const urlObj = url as Record<string, any>;
     if ("value" in urlObj && typeof urlObj.value === "string") {
-      console.log(`URL 객체 감지됨 (${podletName}): value 속성 사용`, urlObj);
       return ensureAbsoluteUrl(urlObj.value, podletName);
     }
   }
 
   // url이 문자열이 아니면 빈 문자열 반환
   if (url === null || url === undefined) return "";
-  if (typeof url !== "string") {
-    console.warn(`[PodletServer] URL is not a string for ${podletName}:`, url);
-    return "";
-  }
+  if (typeof url !== "string") return "";
 
   // 빈 문자열인 경우 그대로 반환
   if (url.trim() === "") return url;
@@ -48,27 +42,19 @@ const ensureAbsoluteUrl = (url: unknown, podletName: string): string => {
   try {
     // 이미 절대 URL 형태인지 확인
     if (url.startsWith("http://") || url.startsWith("https://")) {
-      // 이미 완전한 URL이면 그대로 반환
       return url;
     }
 
     // localhost:3000으로 시작하는 URL인 경우 podlet 서버 포트로 변환
     if (url.includes("localhost:3000")) {
       const port = podletPorts[podletName as keyof typeof podletPorts];
-      if (!port) {
-        console.warn(`Unknown podlet name for URL conversion: ${podletName}`);
-        return url;
-      }
-
+      if (!port) return url;
       return url.replace("localhost:3000", `localhost:${port}`);
     }
 
     // 상대 경로인 경우, 포트 번호를 사용하여 절대 URL로 변환
     const port = podletPorts[podletName as keyof typeof podletPorts];
-    if (!port) {
-      console.warn(`Unknown podlet name for URL conversion: ${podletName}`);
-      return url;
-    }
+    if (!port) return url;
 
     // 이미 절대 경로인지 확인
     if (url.startsWith("/")) {
@@ -78,7 +64,6 @@ const ensureAbsoluteUrl = (url: unknown, podletName: string): string => {
       return `http://localhost:${port}/${url}`;
     }
   } catch (e) {
-    console.error(`[PodletServer] URL 변환 중 오류: ${e}`, { url, podletName });
     return "";
   }
 };
@@ -133,7 +118,6 @@ const rewriteHtmlPaths = (html: string, podletName: string): string => {
 
     return processedHtml;
   } catch (e) {
-    console.error(`[PodletServer] HTML 경로 변환 중 오류:`, e);
     return html;
   }
 };
@@ -143,7 +127,6 @@ export async function PodletServer({ name, context }: PodletServerProps) {
   try {
     const podlet = context.podlets[name];
     if (!podlet) {
-      console.error(`Podlet "${name}" not found in context`);
       return (
         <div
           className="podlet-error"
@@ -165,20 +148,8 @@ export async function PodletServer({ name, context }: PodletServerProps) {
     }
 
     try {
-      // 로깅을 통해 podlet 객체 구조 확인
-      console.log(`[PodletServer] ${name} podlet:`, {
-        content: podlet.content,
-        css: podlet.css,
-        js: podlet.js,
-      });
-
       // content URL을 절대 URL로 변환
       const contentUrl = ensureAbsoluteUrl(podlet.content, name);
-      console.log(
-        `[PodletServer] ${name} content URL: ${contentUrl} (원본: ${JSON.stringify(
-          podlet.content
-        )})`
-      );
 
       // 서버에서 Podlet 콘텐츠 가져오기
       const response = await fetch(contentUrl, {
@@ -197,16 +168,6 @@ export async function PodletServer({ name, context }: PodletServerProps) {
       // HTML 내용의 상대 경로 URL을 절대 경로로 변환
       const html = rewriteHtmlPaths(rawHtml, name);
 
-      // 변환 전/후 HTML 차이 로깅(디버그용)
-      if (html !== rawHtml) {
-        console.log(`[PodletServer] ${name} HTML 내부 경로 변환 수행됨`);
-        // 너무 길 수 있어 간단히 일부만 로깅
-        if (rawHtml.length < 500) {
-          console.log(`원본 HTML: ${rawHtml}`);
-          console.log(`변환된 HTML: ${html}`);
-        }
-      }
-
       // Fallback URL이 있는 경우 fallback 콘텐츠도 가져오기
       let fallbackHtml = "";
       if (podlet.fallback) {
@@ -222,7 +183,7 @@ export async function PodletServer({ name, context }: PodletServerProps) {
             fallbackHtml = rewriteHtmlPaths(rawFallbackHtml, name);
           }
         } catch (fallbackError) {
-          console.warn(`Failed to fetch fallback for ${name}:`, fallbackError);
+          // Fallback 로드 실패 시 무시
         }
       }
 
@@ -237,9 +198,6 @@ export async function PodletServer({ name, context }: PodletServerProps) {
             const cssObj = cssItem as Record<string, any>;
             if ("value" in cssObj && typeof cssObj.value === "string") {
               const transformedUrl = ensureAbsoluteUrl(cssObj.value, name);
-              console.log(
-                `[${name}] CSS 변환: ${cssObj.value} -> ${transformedUrl}`
-              );
 
               // 원본 객체의 속성을 복사한 새 객체 생성
               cssUrls.push({
@@ -250,7 +208,6 @@ export async function PodletServer({ name, context }: PodletServerProps) {
           } else if (typeof cssItem === "string") {
             // 문자열인 경우 직접 변환
             const transformedUrl = ensureAbsoluteUrl(cssItem, name);
-            console.log(`[${name}] CSS 변환: ${cssItem} -> ${transformedUrl}`);
             if (transformedUrl) {
               cssUrls.push(transformedUrl);
             }
@@ -268,9 +225,6 @@ export async function PodletServer({ name, context }: PodletServerProps) {
             const jsObj = jsItem as Record<string, any>;
             if ("value" in jsObj && typeof jsObj.value === "string") {
               const transformedUrl = ensureAbsoluteUrl(jsObj.value, name);
-              console.log(
-                `[${name}] JS 변환: ${jsObj.value} -> ${transformedUrl}`
-              );
 
               // 원본 객체의 속성을 복사한 새 객체 생성
               jsUrls.push({
@@ -281,23 +235,12 @@ export async function PodletServer({ name, context }: PodletServerProps) {
           } else if (typeof jsItem === "string") {
             // 문자열인 경우 직접 변환
             const transformedUrl = ensureAbsoluteUrl(jsItem, name);
-            console.log(`[${name}] JS 변환: ${jsItem} -> ${transformedUrl}`);
             if (transformedUrl) {
               jsUrls.push(transformedUrl);
             }
           }
         }
       }
-
-      // URL 변환 결과 로깅
-      console.log(`[PodletServer] ${name} CSS URLs:`, {
-        original: podlet.css,
-        transformed: cssUrls,
-      });
-      console.log(`[PodletServer] ${name} JS URLs:`, {
-        original: podlet.js,
-        transformed: jsUrls,
-      });
 
       return (
         <div className={`podlet podlet-${name}`}>
@@ -363,9 +306,6 @@ export async function PodletServer({ name, context }: PodletServerProps) {
         </div>
       );
     } catch (fetchError: any) {
-      // any 타입으로 처리
-      console.error(`Error fetching podlet "${name}":`, fetchError);
-
       // Fallback 콘텐츠 가져오기 시도
       if (podlet.fallback) {
         try {
@@ -384,7 +324,7 @@ export async function PodletServer({ name, context }: PodletServerProps) {
             );
           }
         } catch (fallbackError) {
-          console.error(`Failed to fetch fallback for ${name}:`, fallbackError);
+          // Fallback 로드 실패 시 무시
         }
       }
 
@@ -400,20 +340,16 @@ export async function PodletServer({ name, context }: PodletServerProps) {
             borderRadius: "4px",
           }}
         >
-          <h3>Error Loading {name} Podlet</h3>
+          <h3>Error Loading Podlet</h3>
           <p>
-            Failed to fetch content from the podlet server. Please try again
-            later.
+            Failed to load the "{name}" podlet. Please check if the server is
+            running.
           </p>
-          <details>
-            <summary>Technical Details</summary>
-            <pre>{fetchError.message}</pre>
-          </details>
         </div>
       );
     }
   } catch (error) {
-    console.error(`Unexpected error in PodletServer(${name}):`, error);
+    // 일반 오류 처리
     return (
       <div
         className="podlet-error"
@@ -426,7 +362,7 @@ export async function PodletServer({ name, context }: PodletServerProps) {
         }}
       >
         <h3>Unexpected Error</h3>
-        <p>Something went wrong while rendering the {name} podlet.</p>
+        <p>An unexpected error occurred while rendering the "{name}" podlet.</p>
       </div>
     );
   }

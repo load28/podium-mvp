@@ -8,7 +8,6 @@ export async function middleware(request: NextRequest) {
 
   try {
     // Express 스타일의 req, res, next를 시뮬레이션
-    // Podium이 필요로 하는 req 객체 속성 더 정확하게 구현
     const url = new URL(request.url);
 
     const req: any = {
@@ -32,16 +31,6 @@ export async function middleware(request: NextRequest) {
       path: request.nextUrl.pathname,
     };
 
-    // 디버깅 로그
-    console.log("[Middleware] Request object:", {
-      protocol: req.protocol,
-      hostname: req.hostname,
-      url: req.url,
-      method: req.method,
-      secure: req.secure,
-      path: req.path,
-    });
-
     // Express 응답 객체 시뮬레이션
     const res: any = {
       locals: {},
@@ -61,27 +50,6 @@ export async function middleware(request: NextRequest) {
     // Next.js 요청에 Podium 컨텍스트 추가
     const podiumContext = res.locals.podium;
 
-    // 디버깅을 위한 로그 추가
-    console.log(
-      "[Middleware] Podium context:",
-      JSON.stringify(podiumContext, null, 2)
-    );
-    console.log(
-      "[Middleware] Podlet 개수:",
-      podiumContext?.podlets ? Object.keys(podiumContext.podlets).length : 0
-    );
-
-    // 컨텍스트가 없거나 podlets이 비어있는 경우 로그 출력
-    if (
-      !podiumContext ||
-      !podiumContext.podlets ||
-      Object.keys(podiumContext.podlets).length === 0
-    ) {
-      console.warn(
-        "[Middleware] ⚠️ Podium context is empty or missing podlets!"
-      );
-    }
-
     const requestHeaders = new Headers(request.headers);
     if (podiumContext) {
       requestHeaders.set("x-podium-context", JSON.stringify(podiumContext));
@@ -95,14 +63,6 @@ export async function middleware(request: NextRequest) {
     });
   } catch (error) {
     console.error("[Middleware] Error generating Podium context:", error);
-    console.error(
-      "[Middleware] Error details:",
-      error instanceof Error ? error.message : String(error)
-    );
-    console.error(
-      "[Middleware] Error stack:",
-      error instanceof Error ? error.stack : "No stack trace"
-    );
 
     // 오류가 발생해도 요청은 계속 처리
     return NextResponse.next();
