@@ -244,30 +244,6 @@ export async function PodletServer({ name, context }: PodletServerProps) {
 
       return (
         <div className={`podlet podlet-${name}`}>
-          {/* CSS 리소스 */}
-          {cssUrls.map((cssItem, i) => {
-            // 객체인 경우
-            if (typeof cssItem === "object" && cssItem !== null) {
-              const item = cssItem as AssetUrlObject;
-              return (
-                <link
-                  key={`${name}-css-${i}`}
-                  rel={item.rel || "stylesheet"}
-                  type={item.type || "text/css"}
-                  href={item.value}
-                />
-              );
-            }
-            // 문자열인 경우
-            return (
-              <link
-                key={`${name}-css-${i}`}
-                rel="stylesheet"
-                href={cssItem as string}
-              />
-            );
-          })}
-
           {/* Podlet 콘텐츠 */}
           <div
             id={`podlet-${name}-content`}
@@ -283,26 +259,6 @@ export async function PodletServer({ name, context }: PodletServerProps) {
               dangerouslySetInnerHTML={{ __html: fallbackHtml }}
             />
           )}
-
-          {/* JavaScript 리소스 */}
-          {jsUrls.map((jsItem, i) => {
-            // 객체인 경우
-            if (typeof jsItem === "object" && jsItem !== null) {
-              const item = jsItem as AssetUrlObject;
-              return (
-                <script
-                  key={`${name}-js-${i}`}
-                  src={item.value}
-                  defer={item.defer !== false}
-                  type={item.type || undefined}
-                />
-              );
-            }
-            // 문자열인 경우
-            return (
-              <script key={`${name}-js-${i}`} src={jsItem as string} defer />
-            );
-          })}
         </div>
       );
     } catch (fetchError: any) {

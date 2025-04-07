@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "Microfrontend demo with Podium, Next.js and Express",
   "scripts": {
-    "install:all": "pnpm run install:layout && pnpm run install:podlets",
+    "install:all": "pnpm run install:root && pnpm run install:layout && pnpm run install:podlets",
+    "install:root": "pnpm install",
     "install:layout": "cd layout && pnpm install",
     "install:podlets": "cd podlets && pnpm install",
     "dev": "concurrently \"pnpm run dev:layout\" \"pnpm run dev:podlets\"",
