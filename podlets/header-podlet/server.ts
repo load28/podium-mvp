@@ -27,6 +27,25 @@ podlet.js({
   defer: true,
 } as any);
 
+podlet.view((incoming, fragment) => {
+  // Podlet에서 제공하는 CSS와 JS 리소스 참조 유지
+  const { css, js } = incoming;
+
+  // CSS와 JS 태그 생성
+  const cssLinks = css
+    .map((item) => `<link rel="stylesheet" href="${item.value}">`)
+    .join("\n");
+  const jsScripts = js
+    .map((item) => `<script src="${item.value}"></script>`)
+    .join("\n");
+
+  return `
+    ${cssLinks}
+    <div>${fragment}</div>
+    ${jsScripts}
+  `;
+});
+
 // 메인 콘텐츠 라우트
 app.get(podlet.content(), (req, res) => {
   res.status(200).podiumSend(`
